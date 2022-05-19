@@ -1,5 +1,6 @@
 #Proteus
 *.pdsbak*
+*.pdsprj.*
 
 #STM CubeIDE
 *.mk
