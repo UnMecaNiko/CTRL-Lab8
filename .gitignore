@@ -5,6 +5,8 @@
 *.mk
 *.list
 *.bin
+*/.settings/*
+*/Debug/*
 
 # Prerequisites
 *.d
