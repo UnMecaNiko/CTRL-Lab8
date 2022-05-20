@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -124,10 +124,10 @@ int main(void)
   //ADC
   //12 bits de resolucion
   HAL_ADC_Start_DMA(&hadc1, adc_value, 2);
-
   //DAC
   HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-
+  //TIMER
+  HAL_TIM_Base_Start_IT(&htim2);
 
 
   /* USER CODE END 2 */
@@ -140,6 +140,7 @@ int main(void)
 
 
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -521,20 +522,30 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+float vdonref=0.64;
+float vdonplan=0.58;
+
+
 float error[2],out[2],error_act,out_act,voltaje;
+float volref,volplan;
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
+		//referencia 	-> 		A0
+		//planta		->		A3
+		//DAC			->		A4
+
 	  //valor a voltaje
-	  referencia=adc_value[0]/1UL<<12;
-	  planta=adc_value[1]/1UL<<12;
+	  volref=(adc_value[0]/1UL<<12)+vdonref;
+	  volplan=(adc_value[1]/1UL<<12)+vdonplan;
 
 	  //valor real
 
 	  //referencia 	(-6.6,6.6)
-	  referencia=referencia*4-6.6;
+	  referencia=volref*4-6.6;
 	  //planta		(-6.6,6.6)
-	  planta=planta*4-6.6;
+	  planta=volplan*4-6.6;
 
 	  //ecuacion en diferencia
 	  error_act=referencia-planta;
@@ -542,8 +553,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  out_act=error[0]*0.54+error[1]*0.54-out[0]*0.65-out[1]*0.98;
 
 	  //limites de la salida
-	  if (out_act>8.25) {out_act=8.25;}
-	  else{ if (out_act<-8.25){out_act=8.25;}}
+	  if (out_act>6.6) {out_act=6.6;}
+	  else{ if (out_act<-6.6){out_act=-6.6;}}
 
 	  //retraso de las señales
 	  error[1]=error[0];
@@ -553,7 +564,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  out[0]=out_act;
 
 	  //DAC
-	  voltaje=out_act/5+1.65;
+	  voltaje=out_act/4+1.65;
 	  dac_value= voltaje*(0xfff+1)/3.3;
 	  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, dac_value);
 
