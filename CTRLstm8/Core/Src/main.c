@@ -529,6 +529,7 @@ float vdonplan=0.58;
 float error[2],out[2],error_act,out_act,voltaje;
 float volref,volplan;
 
+int intreference,intplanta;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
@@ -537,21 +538,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		//DAC			->		A4
 
 	  //valor a voltaje
-	  volref=(adc_value[0]/1UL<<12)+vdonref;
-	  volplan=(adc_value[1]/1UL<<12)+vdonplan;
+	  volref=(3.3*(float)adc_value[0]/4095.00)+vdonref;
+	  volplan=(3.3*(float)adc_value[1]/4095.00)+vdonplan;
 
 	  printf("%lu",adc_value[0]);
 	  //valor real
 
 	  //referencia 	(-6.6,6.6)
 	  referencia=volref*4-6.6;
+	  intreference=referencia*100;
 	  //planta		(-6.6,6.6)
 	  planta=volplan*4-6.6;
+	  intplanta=planta*100;
 
 	  //ecuacion en diferencia
 	  error_act=referencia-planta;
 
-	  out_act=error[0]*0.54+error[1]*0.54-out[0]*0.65-out[1]*0.98;
+	  float r0=9.5511;
+	  float r1=-18.0914;
+	  float r2=	8.5702;
+
+	  out_act=r0*error_act+r1*error[0]+r2*error[1]+2*out[0]-out[1];
 
 	  //limites de la salida
 	  if (out_act>6.6) {out_act=6.6;}
