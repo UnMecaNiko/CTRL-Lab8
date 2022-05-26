@@ -97,7 +97,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+   HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -540,6 +540,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  volref=(adc_value[0]/1UL<<12)+vdonref;
 	  volplan=(adc_value[1]/1UL<<12)+vdonplan;
 
+	  printf("%lu",adc_value[0]);
 	  //valor real
 
 	  //referencia 	(-6.6,6.6)
